@@ -9,6 +9,10 @@ This version is fit to multiple pages, and each page can have different slide me
 
 The installation and usage are the same as original version.
 
+## Use with PhoneGap
+
+Because the versions below Android 4.0.3 and iOS 5 do not support the CSS property "overflow: auto" and "overflow: scroll", so when you use this slidemenu plugin in a PhoneGap app which running on those versions, the scroll of slidemenu will not working. 
+
 ## Blog
 
 If you have any question or suggestion, welcome to visit my [blog](http://aio1108.pixnet.net/blog).
