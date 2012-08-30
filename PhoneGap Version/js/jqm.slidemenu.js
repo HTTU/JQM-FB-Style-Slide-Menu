@@ -1,4 +1,9 @@
 $(document).on("pageinit",":jqmData(role='page')", function(){
+	var supportTouch = $.support.touch,
+		touchStartEvent = supportTouch ? "touchstart" : "mousedown",
+        touchStopEvent = supportTouch ? "touchend" : "mouseup",
+		touchMoveEvent = supportTouch ? "touchmove" : "mousemove";
+	
 	$(":jqmData(slidemenu)").each(function(){
 		var smb = $(this);
 		smb.addClass('slidemenu_btn');
@@ -27,6 +32,66 @@ $(document).on("pageinit",":jqmData(role='page')", function(){
 			slidemenu(sm, smb, smw);
 		});
 		
+		sm.bind(touchStartEvent, function(e){
+			console.log('start!!');
+			var data = e.originalEvent.touches ? e.originalEvent.touches[ 0 ] : e,
+                start = {
+                    time: (new Date).getTime(),
+                    coords: [ data.pageX, data.pageY ],
+                    origin: $(e.target)
+                },
+                stop;
+            
+            function moveHandler(e){
+            	console.log('move!!');
+            	event.preventDefault();
+            	
+            	if (!start) {
+                    return;
+                }
+            	
+                var data = e.originalEvent.touches ? e.originalEvent.touches[ 0 ] : e;
+                
+                stop = {
+                    time: (new Date).getTime(),
+                    coords: [ data.pageX, data.pageY ]
+                };
+                
+                console.log("Start --> pageX: "+ start.coords[0] +", pageY: " + start.coords[1]);
+                console.log("Stop --> pageX: "+ stop.coords[0] +", pageY: " + stop.coords[1]);
+                
+    			var delta = stop.coords[1] - start.coords[1];
+    			var origin = smw.css("top");
+    			var diff = parseFloat(origin) + delta;
+    			var diffHeight = sm.height() - smw.height();
+    			if(delta < 0){
+    				if(diff < diffHeight){
+    					if(origin !== diffHeight+"px"){
+    						smw.css("top", diffHeight+"px");
+    					}
+    				}else{
+    					smw.css("top", diff+"px");
+    				}
+    			}else{
+    				if(diff > 0){
+    					smw.css("top", "0px");
+    				}else{
+    					smw.css("top", diff+"px");
+    				}
+    			}
+                
+                stop.origin = start.origin;
+                start = stop;
+            }
+            
+            sm.bind(touchMoveEvent, moveHandler).one(touchStopEvent, function(e){
+    			console.log('stop!!');
+    			sm.unbind(touchMoveEvent, moveHandler);
+    			start = stop = undefined;
+    		});;
+		});
+		
+		/*
 		//add swipe up & down event
 		sm.live('swipeup', function(e, start, stop){
 			var delta = stop.coords[1] - start.coords[1];
@@ -52,6 +117,7 @@ $(document).on("pageinit",":jqmData(role='page')", function(){
 				smw.animate({top: diff+"px", avoidTransforms: false, useTranslate3d: true});
 			}
 		});
+		*/
 	});
 	
 	$(document).on("click", "a:not(:jqmData(slidemenu))", function(e) {
