@@ -15,9 +15,7 @@
 	box-shadow: 3px 0px 5px -2px #32394A;
 	z-index: 2147483647;
 	display: none;
-	/* overflow: auto; */
 	overflow: hidden;
-	/* -webkit-overflow-scrolling: touch; */
 }
 
 .slidemenu h3{

@@ -8,21 +8,17 @@ $(document).on("pageinit",":jqmData(role='page')", function(){
 		var smb = $(this);
 		smb.addClass('slidemenu_btn');
 		var sm = $(smb.data('slidemenu'));
-	    sm.addClass('slidemenu');
-	    var smw = $(smb.data('slidemenu')+"_wrapper");
-	    smw.addClass('slidemenu-wrapper');
-		
-		console.log(smb.parent(":jqmData(role='header')").parent(":jqmData(role='page')").attr("id"));
+		sm.addClass('slidemenu');
+		var smw = $(smb.data('slidemenu')+"_wrapper");
+		smw.addClass('slidemenu-wrapper');
 		
 		smb.parent(":jqmData(role='header')").parent(":jqmData(role='page')").on("swipeleft", function(event){
-			console.log("left");
 			event.stopImmediatePropagation();
 			only_close = true;
 			slidemenu(sm, smb, smw, only_close);
 		});
 		
 		smb.parent(":jqmData(role='header')").parent(":jqmData(role='page')").on("swiperight", function(event){
-			console.log("right");
 			event.stopImmediatePropagation();
 			slidemenu(sm, smb, smw);
 		});
@@ -33,98 +29,65 @@ $(document).on("pageinit",":jqmData(role='page')", function(){
 		});
 		
 		sm.bind(touchStartEvent, function(e){
-			console.log('start!!');
+			
 			var data = e.originalEvent.touches ? e.originalEvent.touches[ 0 ] : e,
-                start = {
-                    time: (new Date).getTime(),
-                    coords: [ data.pageX, data.pageY ],
-                    origin: $(e.target)
-                },
-                stop;
+			start = {
+			    time: (new Date).getTime(),
+			    coords: [ data.pageX, data.pageY ],
+			    origin: $(e.target)
+			},
+			stop;
             
-            function moveHandler(e){
-            	console.log('move!!');
-            	event.preventDefault();
-            	
-            	if (!start) {
-                    return;
-                }
-            	
-                var data = e.originalEvent.touches ? e.originalEvent.touches[ 0 ] : e;
-                
-                stop = {
-                    time: (new Date).getTime(),
-                    coords: [ data.pageX, data.pageY ]
-                };
-                
-                console.log("Start --> pageX: "+ start.coords[0] +", pageY: " + start.coords[1]);
-                console.log("Stop --> pageX: "+ stop.coords[0] +", pageY: " + stop.coords[1]);
-                
-    			var delta = stop.coords[1] - start.coords[1];
-    			var origin = smw.css("top");
-    			var diff = parseFloat(origin) + delta;
-    			var diffHeight = sm.height() - smw.height();
-    			if(delta < 0){
-    				if(diff < diffHeight){
-    					if(origin !== diffHeight+"px"){
-    						smw.css("top", diffHeight+"px");
-    					}
-    				}else{
-    					smw.css("top", diff+"px");
-    				}
-    			}else{
-    				if(diff > 0){
-    					smw.css("top", "0px");
-    				}else{
-    					smw.css("top", diff+"px");
-    				}
-    			}
-                
-                stop.origin = start.origin;
-                start = stop;
-            }
-            
-            sm.bind(touchMoveEvent, moveHandler).one(touchStopEvent, function(e){
-    			console.log('stop!!');
-    			sm.unbind(touchMoveEvent, moveHandler);
-    			start = stop = undefined;
-    		});;
-		});
-		
-		/*
-		//add swipe up & down event
-		sm.live('swipeup', function(e, start, stop){
-			var delta = stop.coords[1] - start.coords[1];
-			var origin = smw.css("top");
-			var diff = parseFloat(origin) + delta;
-			var diffHeight = sm.height() - smw.height();
-			if(diff < diffHeight){
-				if(origin !== diffHeight+"px"){
-					smw.animate({top: diffHeight+"px", avoidTransforms: false, useTranslate3d: true});
+			function moveHandler(e){
+				event.preventDefault();
+				
+				if (!start) {
+				    return;
 				}
-			}else{
-				smw.animate({top: diff+"px", avoidTransforms: false, useTranslate3d: true});
+				
+				var data = e.originalEvent.touches ? e.originalEvent.touches[ 0 ] : e;
+				
+				stop = {
+				    time: (new Date).getTime(),
+				    coords: [ data.pageX, data.pageY ]
+				};
+			    
+				var delta = stop.coords[1] - start.coords[1];
+				var origin = smw.css("top");
+				var diff = parseFloat(origin) + delta;
+				var diffHeight = sm.height() - smw.height();
+				if(delta < 0){
+					if(diff < diffHeight){
+						if(origin !== diffHeight+"px"){
+							smw.css("top", diffHeight+"px");
+						}
+					}else{
+						smw.css("top", diff+"px");
+					}
+				}else{
+					if(diff > 0){
+						smw.css("top", "0px");
+					}else{
+						smw.css("top", diff+"px");
+					}
+				}
+			    
+				stop.origin = start.origin;
+				start = stop;
 			}
+            
+			sm.bind(touchMoveEvent, moveHandler).one(touchStopEvent, function(e){
+				sm.unbind(touchMoveEvent, moveHandler);
+				start = stop = undefined;
+			});
 		});
 		
-		sm.live('swipedown', function(e, start, stop){
-			var delta = stop.coords[1] - start.coords[1];
-			var origin = smw.css("top");
-			var diff = parseFloat(origin) + delta;
-			if(diff > 0){
-				smw.animate({top: "0px", avoidTransforms: false, useTranslate3d: true});
-			}else{
-				smw.animate({top: diff+"px", avoidTransforms: false, useTranslate3d: true});
-			}
-		});
-		*/
 	});
 	
 	$(document).on("click", "a:not(:jqmData(slidemenu))", function(e) {
 		var smb = $(".ui-page-active").children(":jqmData(role='header')").first().children(".slidemenu_btn").first();
 		var sm = $(smb.data('slidemenu'));
 		var smw = $(smb.data('slidemenu') + "_wrapper");
-		console.log("close :" + sm.attr('id'));
 		only_close = true;
 		slidemenu(sm, smb, smw, only_close);
 	});
@@ -150,7 +113,6 @@ function slidemenu(sm, context, smw, only_close) {
 	sm.height(viewport().height);
 
 	if (!context.data('slideopen') && !only_close) {
-		console.log("slideopen=false");
 		sm.show();
 		var w = '240px';
 		sm.animate({width: w, avoidTransforms: false, useTranslate3d: true}, 'fast');
@@ -158,8 +120,6 @@ function slidemenu(sm, context, smw, only_close) {
 		context.data('slideopen', true);
 		
 		if ($(".ui-page-active").children(":jqmData(role='header')").first().data('position') === 'fixed') {
-			console.log("fixed header");
-			console.log(parseInt(w.split('px')[0]) + 10 + 'px');
 			context.css('margin-left', parseInt(w.split('px')[0]) + 10 + 'px');
 		} else {
 			context.css('margin-left', '10px');
