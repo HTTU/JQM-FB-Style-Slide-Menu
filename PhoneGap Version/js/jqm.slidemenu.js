@@ -1,8 +1,16 @@
 $(document).on("pageinit",":jqmData(role='page')", function(){
-	var supportTouch = $.support.touch,
-		touchStartEvent = supportTouch ? "touchstart" : "mousedown",
-        touchStopEvent = supportTouch ? "touchend" : "mouseup",
-		touchMoveEvent = supportTouch ? "touchmove" : "mousemove";
+	
+	//add by Wei for fixing the bug when the slidemenu is opened and user clicks the physic back button
+	document.addEventListener("backbutton", function(e){
+		$(":jqmData(slidemenu)").each(function(){
+			var smb = $(this);
+			var sm = $(smb.data('slidemenu'));
+			var smw = $(smb.data('slidemenu')+"_wrapper");
+			if(smb.data('slideopen')){
+				slidemenu(sm, smb, smw, only_close);
+			}
+		});
+	}, false);
 	
 	$(":jqmData(slidemenu)").each(function(){
 		var smb = $(this);
@@ -11,75 +19,25 @@ $(document).on("pageinit",":jqmData(role='page')", function(){
 		sm.addClass('slidemenu');
 		var smw = $(smb.data('slidemenu')+"_wrapper");
 		smw.addClass('slidemenu-wrapper');
+		var scroller;
 		
-		smb.parent(":jqmData(role='header')").parent(":jqmData(role='page')").on("swipeleft", function(event){
-			event.stopImmediatePropagation();
-			only_close = true;
-			slidemenu(sm, smb, smw, only_close);
-		});
-		
-		smb.parent(":jqmData(role='header')").parent(":jqmData(role='page')").on("swiperight", function(event){
-			event.stopImmediatePropagation();
-			slidemenu(sm, smb, smw);
-		});
+		if(smb.data('swipetrigger') === "true"){
+			smb.parent(":jqmData(role='header')").parent(":jqmData(role='page')").on("swipeleft", function(event){
+				event.stopImmediatePropagation();
+				only_close = true;
+				slidemenu(sm, smb, smw, only_close);
+			});
+			
+			smb.parent(":jqmData(role='header')").parent(":jqmData(role='page')").on("swiperight", function(event){
+				event.stopImmediatePropagation();
+				slidemenu(sm, smb, smw);
+			});
+		}
 		
 		smb.on("click", function(event) {
 			event.stopImmediatePropagation();
 			slidemenu(sm, smb, smw);
-		});
-		
-		sm.bind(touchStartEvent, function(e){
-			
-			var data = e.originalEvent.touches ? e.originalEvent.touches[ 0 ] : e,
-			start = {
-			    time: (new Date).getTime(),
-			    coords: [ data.pageX, data.pageY ],
-			    origin: $(e.target)
-			},
-			stop;
-            
-			function moveHandler(e){
-				event.preventDefault();
-				
-				if (!start) {
-				    return;
-				}
-				
-				var data = e.originalEvent.touches ? e.originalEvent.touches[ 0 ] : e;
-				
-				stop = {
-				    time: (new Date).getTime(),
-				    coords: [ data.pageX, data.pageY ]
-				};
-			    
-				var delta = stop.coords[1] - start.coords[1];
-				var origin = smw.css("top");
-				var diff = parseFloat(origin) + delta;
-				var diffHeight = sm.height() - smw.height();
-				if(delta < 0){
-					if(diff < diffHeight){
-						if(origin !== diffHeight+"px"){
-							smw.css("top", diffHeight+"px");
-						}
-					}else{
-						smw.css("top", diff+"px");
-					}
-				}else{
-					if(diff > 0){
-						smw.css("top", "0px");
-					}else{
-						smw.css("top", diff+"px");
-					}
-				}
-			    
-				stop.origin = start.origin;
-				start = stop;
-			}
-            
-			sm.bind(touchMoveEvent, moveHandler).one(touchStopEvent, function(e){
-				sm.unbind(touchMoveEvent, moveHandler);
-				start = stop = undefined;
-			});
+			if(typeof scroller === "undefined") { scroller = new iScroll(sm.attr('id')); }
 		});
 		
 	});
@@ -92,6 +50,7 @@ $(document).on("pageinit",":jqmData(role='page')", function(){
 		slidemenu(sm, smb, smw, only_close);
 	});
 
+	/*
 	$(window).on('resize', function(){
 		if ($(".ui-page-active").children(":jqmData(role='header')").first().children(":jqmData(slidemenu)").first().data('slideopen')) {
 			var sm = $($(".ui-page-active").children(":jqmData(role='header')").first().children(":jqmData(slidemenu)").first().data('slidemenu'));
@@ -105,33 +64,47 @@ $(document).on("pageinit",":jqmData(role='page')", function(){
 		}
 
 	});
+	*/
 
 });
 
 function slidemenu(sm, context, smw, only_close) {
 
 	sm.height(viewport().height);
-
 	if (!context.data('slideopen') && !only_close) {
+		//add by Wei for fixing the slidemenu position bug when content scroll down and the header position is fixed 
+		var top = $(".ui-page-active").children(":jqmData(role='header')").first().offset().top;
+		sm.css('top', top + 'px');
+		
 		sm.show();
 		var w = '240px';
-		sm.animate({width: w, avoidTransforms: false, useTranslate3d: true}, 'fast');
+		//sm.animate({width: w, avoidTransforms: false, useTranslate3d: true}, 'fast');
+		//modified by Wei, to fix the animation bug after click the carousel image
+		sm.css('width', w);
 		$(".ui-page-active").css('left', w);
 		context.data('slideopen', true);
 		
 		if ($(".ui-page-active").children(":jqmData(role='header')").first().data('position') === 'fixed') {
 			context.css('margin-left', parseInt(w.split('px')[0]) + 10 + 'px');
+			//add by Wei to hide the other buttons in header for avoiding buttons overlap problem
+			$(".ui-page-active").children(":jqmData(role='header')").first().children('a').not('.slidemenu_btn').hide();
+			$(".ui-page-active").children(":jqmData(role='header')").first().children('.ui-title').css('opacity', '0');
 		} else {
 			context.css('margin-left', '10px');
 		}
 
 	} else {
-		console.log("slideopen=true");
 		var w = '0px';
-		sm.animate({width: w, avoidTransforms: false, useTranslate3d: true}, 'fast', function(){sm.hide()});
+		//sm.animate({width: w, avoidTransforms: false, useTranslate3d: true}, 'fast', function(){sm.hide()});
+		//modified by Wei, to fix the animation bug after click the carousel image
+		sm.css('width', w);
+		sm.hide();
 		$(".ui-page-active").css('left', w);
 		context.data('slideopen', false);
 		context.css('margin-left', '0px');
+		//add by Wei to show the other buttons in header for avoiding buttons overlap problem
+		$(".ui-page-active").children(":jqmData(role='header')").first().children('a').not('.slidemenu_btn').show();
+		$(".ui-page-active").children(":jqmData(role='header')").first().children('.ui-title').css('opacity', '1');
 	}
 }
 
@@ -142,5 +115,5 @@ function viewport(){
 		a = 'client';
 		e = document.documentElement || document.body;
 	}
-	return { width : e[ a+'Width' ] , height : e[ a+'Height' ] }
+	return { width : e[ a+'Width' ] , height : e[ a+'Height' ] };
 }
